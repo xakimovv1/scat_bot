@@ -1,0 +1,12 @@
+@router.message(F.text == "/logs")
+async def show_logs(msg: Message):
+    if msg.from_user.id not in active_admins:
+        await msg.answer("❌ Siz admin sifatida tizimga kirmagansiz. Iltimos, /admin buyrug‘ini bering.")
+        return
+
+    try:
+        with open("logs/payments.log", "r", encoding="utf-8") as f:
+            lines = f.readlines()[-10:]
+        await msg.answer("🧾 Oxirgi to‘lovlar:\n\n" + "".join(lines))
+    except FileNotFoundError:
+        await msg.answer("📂 Log fayl mavjud emas.")
