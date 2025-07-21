@@ -1,4 +1,3 @@
-# handlers/main.py
 from aiogram import Router, F, Bot
 from aiogram.types import Message
 from aiogram.filters import CommandStart
@@ -6,13 +5,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 import os, datetime
 from config import ADMINS
-from ocr.parser import extract_payment_data
 from utils.scat_api import check_pay, do_pay
 
 router = Router()
 active_admins = set()
 
-GROUP_USERNAME = "@xizmattekshiruvbot1"  # <-- guruh username
+# Guruhga yuborish uchun username (bot admin bo‘lishi kerak)
+GROUP_USERNAME = "@xizmattekshiruvbot1"
 
 class PayStates(StatesGroup):
     pozivnoy = State()
@@ -52,20 +51,13 @@ async def get_screenshot(msg: Message, state: FSMContext):
     file = await bot.get_file(photo.file_id)
     await bot.download_file(file.file_path, destination=path)
 
-    await msg.answer("🕵️‍♂️ Skrinshot tekshirilmoqda...")
+    await msg.answer("✅ Chekingiz qabul qilindi. Adminlar tomonidan ko‘rib chiqiladi.")
 
-    parsed = extract_payment_data(path)
-    detected_summa = parsed.get("summa", "❌")
-    karta = parsed.get("card", "0000")
-
-    if detected_summa != entered_summa:
-        await msg.answer(
-            f"⚠️ Diqqat! Kiritilgan summa: {entered_summa} so'm\n"
-            f"Chekdagi summa: {detected_summa} so'm\n"
-            f"Biroq balansga siz kiritgan summa tushiriladi va bu admin tomonidan ko‘rib chiqiladi."
-        )
-
+    # OCR yo‘q, shunchaki dummy qiymatlar
+    detected_summa = "NOMA'LUM"
+    karta = "0000"
     txn_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
     code, check_resp = check_pay(pozivnoy, txn_id, entered_summa)
 
     success = False
@@ -100,11 +92,10 @@ async def log_payment(bot: Bot, user_id, pozivnoy, entered_summa, detected_summa
         f"-----------------------------"
     )
 
-    # Faylga yozish
     with open(os.path.join(log_dir, "payments.log"), "a", encoding="utf-8") as f:
         f.write(log_msg + "\n")
 
-    # Guruhga yuborish
+    # Guruhga skrinshot va logni yuborish
     await bot.send_photo(
         chat_id=GROUP_USERNAME,
         photo=photo.file_id,
