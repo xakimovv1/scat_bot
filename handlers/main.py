@@ -12,6 +12,8 @@ from utils.scat_api import check_pay, do_pay
 router = Router()
 active_admins = set()
 
+GROUP_USERNAME = "@xizmattekshiruvbot1"  # <-- guruh username
+
 class PayStates(StatesGroup):
     pozivnoy = State()
     summa = State()
@@ -56,7 +58,6 @@ async def get_screenshot(msg: Message, state: FSMContext):
     detected_summa = parsed.get("summa", "❌")
     karta = parsed.get("card", "0000")
 
-    # Noto‘g‘ri kiritilgan summa haqida ogohlantirish
     if detected_summa != entered_summa:
         await msg.answer(
             f"⚠️ Diqqat! Kiritilgan summa: {entered_summa} so'm\n"
@@ -65,24 +66,23 @@ async def get_screenshot(msg: Message, state: FSMContext):
         )
 
     txn_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
     code, check_resp = check_pay(pozivnoy, txn_id, entered_summa)
 
+    success = False
     if code == 200 and "<result>0</result>" in check_resp:
         code2, pay_resp = do_pay(pozivnoy, txn_id, entered_summa)
         if code2 == 200 and "<result>0</result>" in pay_resp:
             await msg.answer("✅ To‘lov tasdiqlandi va balansga tushirildi!")
-            log_payment(msg.from_user.id, pozivnoy, entered_summa, detected_summa, karta, txn_id, path, True)
+            success = True
         else:
             await msg.answer("❌ To‘lov amalga oshmadi:\n" + pay_resp)
-            log_payment(msg.from_user.id, pozivnoy, entered_summa, detected_summa, karta, txn_id, path, False)
     else:
         await msg.answer("❌ Tekshiruvda xatolik:\n" + check_resp)
-        log_payment(msg.from_user.id, pozivnoy, entered_summa, detected_summa, karta, txn_id, path, False)
 
+    await log_payment(bot, msg.from_user.id, pozivnoy, entered_summa, detected_summa, karta, txn_id, path, success, photo)
     await state.clear()
 
-def log_payment(user_id, pozivnoy, entered_summa, detected_summa, card, txn_id, screenshot_path, success):
+async def log_payment(bot: Bot, user_id, pozivnoy, entered_summa, detected_summa, card, txn_id, screenshot_path, success, photo):
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     vaqt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -96,13 +96,20 @@ def log_payment(user_id, pozivnoy, entered_summa, detected_summa, card, txn_id, 
         f"💰 Kiritilgan summa: {entered_summa} so'm\n"
         f"🔍 Chekdagi summa: {detected_summa} so'm\n"
         f"💳 Karta: {card}\n"
-        f"🖼 Skrinshot: {screenshot_path}\n"
         f"📥 Status: {status}\n"
-        f"----------------------------------\n"
+        f"-----------------------------"
     )
 
+    # Faylga yozish
     with open(os.path.join(log_dir, "payments.log"), "a", encoding="utf-8") as f:
-        f.write(log_msg)
+        f.write(log_msg + "\n")
+
+    # Guruhga yuborish
+    await bot.send_photo(
+        chat_id=GROUP_USERNAME,
+        photo=photo.file_id,
+        caption=log_msg
+    )
 
 @router.message(F.text == "/admin")
 async def admin_start(msg: Message, state: FSMContext):
