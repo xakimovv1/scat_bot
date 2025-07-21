@@ -1,4 +1,14 @@
 __pycache__/
 *.pyc
-screenshots/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
 logs/
+screenshots/
+.git/
+*.log
+.DS_Store
+*.jpg
+*.png
