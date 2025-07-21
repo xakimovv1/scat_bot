@@ -8,4 +8,3 @@ pydantic
 aiohttp
 pytesseract
 opencv-python-headless
-...
