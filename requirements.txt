@@ -1,10 +1,7 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 aiogram==3.4
-easyocr==1.7.1
-torch==2.2.0+cpu
 torchvision==0.17.0+cpu
 pydantic
 aiohttp
 pytesseract
-opencv-python-headless
