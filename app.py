@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from handlers.main import register_handlers  # <--- asosiy routerni ulaymiz
 
-TOKEN = "7951148632:AAHFj-Kf4UGjDr1QShI8JeoyfFbt6Ka7Zf8"  # <-- bu yerga o'z bot tokeningizni yozing
+TOKEN = "7951148632:AAFMOB_CueliG5svW9M_PqaptkT8Fu9v8m4"  # <-- bu yerga o'z bot tokeningizni yozing
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
