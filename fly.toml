@@ -1,0 +1,9 @@
+# fly.toml
+app = "scat-pay-bot"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
